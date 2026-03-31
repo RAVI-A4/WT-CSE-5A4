@@ -1,36 +1,76 @@
-const express = require('express');
-const dotenv = require('dotenv');
+import React, { useState, useEffect } from "react";
 
-dotenv.config();
+function App() {
+  // State for items
+  const [items, setItems] = useState([]);
+  const [input, setInput] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
 
-const app = express();
-const port = process.env.PORT || 3000;
+  // Effect to log changes in items
+  useEffect(() => {
+    console.log("Items changed:", items);
+  }, [items]);
 
+  // Add or Update item
+  const addItem = (e) => {
+    e.preventDefault(); // Prevent default form submission
 
-app.get('/', (req, res) => {
-    res.send('Environment Variables Demo!');
-});
+    if (input.trim() === "") return; // Return if input is empty
 
+    if (editIndex !== null) {
+      const updatedItems = [...items];
+      updatedItems[editIndex] = input;
+      setItems(updatedItems);
+      setEditIndex(null);
+    } else {
+      setItems([...items, input]);
+    }
 
-app.get('/config', (req, res) => {
+    setInput("");
+  };
 
-    const dbHost = process.env.DB_HOST;
-    const dbUser = process.env.DB_USER;
-    const apiKey = process.env.API_KEY;
+  // Edit item
+  const editItem = (index) => {
+    setInput(items[index]);
+    setEditIndex(index);
+  };
 
-    res.json({
-        dbHost,
-        dbUser,
-        apiKey
-    });
-});
+  // Delete item
+  const deleteItem = (index) => {
+    const updatedItems = [...items];
+    updatedItems.splice(index, 1);
+    setItems(updatedItems);
+  };
 
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Item Manager</h1>
 
-app.use((req, res) => {
-    res.status(404).send('Not Found');
-});
+      <form onSubmit={addItem}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter item"
+        />
+        <button type="submit">
+          {editIndex !== null ? "Update" : "Add"}
+        </button>
+      </form>
 
+      <ul>
+        {items.length === 0 && <p>No items yet.</p>}
 
- app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+        {items.map((item, index) => (
+          <li key={index}>
+            {item}{" "}
+            <button onClick={() => editItem(index)}>Edit</button>{" "}
+            <button onClick={() => deleteItem(index)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
